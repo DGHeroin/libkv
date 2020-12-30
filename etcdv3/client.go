@@ -3,7 +3,6 @@ package etcdv3
 import (
     "context"
     "github.com/DGHeroin/libkv"
-    "github.com/DGHeroin/libkv/storage"
     v3 "go.etcd.io/etcd/clientv3"
     "time"
 )
@@ -11,11 +10,9 @@ import (
 func init() {
     libkv.AddStorage("etcdv3", New)
 }
-func New(addrs []string, opt *storage.Config) (storage.Storage, error) {
+func New(addrs []string, opt *libkv.Config) (libkv.Storage, error) {
     if opt == nil {
-        opt = &storage.Config{
-            ConnectionTimeout: time.Second * 5,
-        }
+        opt = libkv.DefaultConfig()
     }
     v := &etcdv3Impl{
         addrs:   addrs,
@@ -38,13 +35,13 @@ func New(addrs []string, opt *storage.Config) (storage.Storage, error) {
 
 type etcdv3Impl struct {
     addrs   []string
-    opt     *storage.Config
+    opt     *libkv.Config
     client  *v3.Client
     timeout time.Duration
     done    chan struct{}
 }
 
-func (s *etcdv3Impl) Put(key string, value []byte, options *storage.WriteOptions) error {
+func (s *etcdv3Impl) Put(key string, value []byte, options *libkv.WriteOptions) error {
     ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
     defer cancel()
     _, err := s.client.Put(ctx, key, string(value))
@@ -52,14 +49,14 @@ func (s *etcdv3Impl) Put(key string, value []byte, options *storage.WriteOptions
     return err
 }
 
-func (s *etcdv3Impl) Get(key string) (*storage.KVPair, error) {
+func (s *etcdv3Impl) Get(key string) (*libkv.KVPair, error) {
     ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
     defer cancel()
     resp, err := s.client.Get(ctx, key)
     if err != nil {
         return nil, err
     }
-    r := &storage.KVPair{
+    r := &libkv.KVPair{
         Key: key,
     }
     for _, ev := range resp.Kvs {
@@ -84,8 +81,8 @@ func (s *etcdv3Impl) Exists(key string) (bool, error) {
     return r.Value != nil, nil
 }
 
-func (s *etcdv3Impl) Watch(key string, stopCh <-chan struct{}) (<-chan *storage.KVPair, error) {
-    watchCh := make(chan *storage.KVPair)
+func (s *etcdv3Impl) Watch(key string, stopCh <-chan struct{}) (<-chan *libkv.KVPair, error) {
+    watchCh := make(chan *libkv.KVPair)
     go func() {
         defer close(watchCh)
         pair, err := s.Get(key)
@@ -102,7 +99,7 @@ func (s *etcdv3Impl) Watch(key string, stopCh <-chan struct{}) (<-chan *storage.
                 return
             case wresp := <-rch:
                 for _, event := range wresp.Events {
-                    watchCh <- &storage.KVPair{
+                    watchCh <- &libkv.KVPair{
                         Key:       string(event.Kv.Key),
                         Value:     event.Kv.Value,
                         LastIndex: uint64(event.Kv.Version),
@@ -114,8 +111,8 @@ func (s *etcdv3Impl) Watch(key string, stopCh <-chan struct{}) (<-chan *storage.
     return watchCh, nil
 }
 
-func (s *etcdv3Impl) WatchTree(dir string, stopCh <-chan struct{}) (<-chan []*storage.KVPair, error) {
-    watchCh := make(chan []*storage.KVPair)
+func (s *etcdv3Impl) WatchTree(dir string, stopCh <-chan struct{}) (<-chan []*libkv.KVPair, error) {
+    watchCh := make(chan []*libkv.KVPair)
     go func() {
         defer close(watchCh)
 
@@ -141,11 +138,11 @@ func (s *etcdv3Impl) WatchTree(dir string, stopCh <-chan struct{}) (<-chan []*st
     return watchCh, nil
 }
 
-func (s *etcdv3Impl) NewLock(key string, options *storage.LockOptions) (storage.Locker, error) {
+func (s *etcdv3Impl) NewLock(key string, options *libkv.LockOptions) (libkv.Locker, error) {
     panic("implement me")
 }
 
-func (s *etcdv3Impl) List(dir string) ([]*storage.KVPair, error) {
+func (s *etcdv3Impl) List(dir string) ([]*libkv.KVPair, error) {
     ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
     defer cancel()
     resp, err := s.client.Get(ctx, dir, v3.WithPrefix())
@@ -153,9 +150,9 @@ func (s *etcdv3Impl) List(dir string) ([]*storage.KVPair, error) {
         return nil, err
     }
 
-    kvs := make([]*storage.KVPair, 0, len(resp.Kvs))
+    kvs := make([]*libkv.KVPair, 0, len(resp.Kvs))
     for _, kv := range resp.Kvs {
-        kvs = append(kvs, &storage.KVPair{
+        kvs = append(kvs, &libkv.KVPair{
             Key:       string(kv.Key),
             Value:     kv.Value,
             LastIndex: uint64(kv.Version),
@@ -171,11 +168,11 @@ func (s *etcdv3Impl) DeleteTree(dir string) error {
     return err
 }
 
-func (s *etcdv3Impl) AtomicPut(key string, value []byte, previous *storage.KVPair, options *storage.WriteOptions) (bool, *storage.KVPair, error) {
+func (s *etcdv3Impl) AtomicPut(key string, value []byte, previous *libkv.KVPair, options *libkv.WriteOptions) (bool, *libkv.KVPair, error) {
     panic("implement me")
 }
 
-func (s *etcdv3Impl) AtomicDelete(key string, previous *storage.KVPair) (bool, error) {
+func (s *etcdv3Impl) AtomicDelete(key string, previous *libkv.KVPair) (bool, error) {
     panic("implement me")
 }
 

@@ -3,7 +3,6 @@ package leveldb
 import (
     "errors"
     "github.com/DGHeroin/libkv"
-    "github.com/DGHeroin/libkv/storage"
     ldb "github.com/syndtr/goleveldb/leveldb"
     "github.com/syndtr/goleveldb/leveldb/util"
 )
@@ -11,10 +10,9 @@ import (
 func init() {
     libkv.AddStorage("leveldb", New)
 }
-func New(addrs []string, opt *storage.Config) (storage.Storage, error) {
+func New(addrs []string, opt *libkv.Config) (libkv.Storage, error) {
     if opt == nil {
-        opt = &storage.Config{
-        }
+        opt = libkv.DefaultConfig()
     }
     if len(addrs) == 0 {
         return nil, errors.New("leveldb path unspecified")
@@ -35,16 +33,16 @@ type leveldbImpl struct {
     db   *ldb.DB
 }
 
-func (s *leveldbImpl) Put(key string, value []byte, options *storage.WriteOptions) error {
+func (s *leveldbImpl) Put(key string, value []byte, options *libkv.WriteOptions) error {
     return s.db.Put([]byte(key), value, nil)
 }
 
-func (s *leveldbImpl) Get(key string) (*storage.KVPair, error) {
+func (s *leveldbImpl) Get(key string) (*libkv.KVPair, error) {
     val, err := s.db.Get([]byte(key), nil)
     if err != nil {
         return nil, err
     }
-    return &storage.KVPair{
+    return &libkv.KVPair{
         Key:       key,
         Value:     val,
         LastIndex: 0,
@@ -59,23 +57,23 @@ func (s *leveldbImpl) Exists(key string) (bool, error) {
     return s.db.Has([]byte(key), nil)
 }
 
-func (s *leveldbImpl) Watch(key string, stopCh <-chan struct{}) (<-chan *storage.KVPair, error) {
+func (s *leveldbImpl) Watch(key string, stopCh <-chan struct{}) (<-chan *libkv.KVPair, error) {
     panic("implement me")
 }
 
-func (s *leveldbImpl) WatchTree(dir string, stopCh <-chan struct{}) (<-chan []*storage.KVPair, error) {
+func (s *leveldbImpl) WatchTree(dir string, stopCh <-chan struct{}) (<-chan []*libkv.KVPair, error) {
     panic("implement me")
 }
 
-func (s *leveldbImpl) NewLock(key string, options *storage.LockOptions) (storage.Locker, error) {
+func (s *leveldbImpl) NewLock(key string, options *libkv.LockOptions) (libkv.Locker, error) {
     panic("implement me")
 }
 
-func (s *leveldbImpl) List(dir string) ([]*storage.KVPair, error) {
+func (s *leveldbImpl) List(dir string) ([]*libkv.KVPair, error) {
     iter := s.db.NewIterator(util.BytesPrefix([]byte(dir)), nil)
-    var result = make([]*storage.KVPair, 16)
+    var result = make([]*libkv.KVPair, 16)
     for iter.Next() {
-        result = append(result, &storage.KVPair{
+        result = append(result, &libkv.KVPair{
             Key:       string(iter.Key()),
             Value:     iter.Value(),
             LastIndex: 0,
@@ -96,11 +94,11 @@ func (s *leveldbImpl) DeleteTree(dir string) error {
     return s.db.Write(batch, nil)
 }
 
-func (s *leveldbImpl) AtomicPut(key string, value []byte, previous *storage.KVPair, options *storage.WriteOptions) (bool, *storage.KVPair, error) {
+func (s *leveldbImpl) AtomicPut(key string, value []byte, previous *libkv.KVPair, options *libkv.WriteOptions) (bool, *libkv.KVPair, error) {
     panic("implement me")
 }
 
-func (s *leveldbImpl) AtomicDelete(key string, previous *storage.KVPair) (bool, error) {
+func (s *leveldbImpl) AtomicDelete(key string, previous *libkv.KVPair) (bool, error) {
     panic("implement me")
 }
 

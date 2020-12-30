@@ -1,4 +1,4 @@
-package storage
+package libkv
 
 import (
     "crypto/tls"
@@ -21,7 +21,9 @@ type Storage interface {
     Close()
 }
 
-type WriteOptions struct{}
+type WriteOptions struct {
+    TTL time.Duration
+}
 
 type Config struct {
     ClientTLS         *ClientTLSConfig
@@ -30,6 +32,19 @@ type Config struct {
     Bucket            string
     Username          string
     Password          string
+    DB                int
+}
+
+func DefaultConfig() *Config {
+    return &Config{
+        ClientTLS:         nil,
+        TLS:               nil,
+        ConnectionTimeout: time.Second * 5,
+        Bucket:            "",
+        Username:          "",
+        Password:          "",
+        DB:                0,
+    }
 }
 type ClientTLSConfig struct {
     CertFile   string

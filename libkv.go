@@ -2,12 +2,11 @@ package libkv
 
 import (
     "fmt"
-    "github.com/DGHeroin/libkv/storage"
     "sort"
     "strings"
 )
 
-type Initialize func(endpoints []string, opt*storage.Config) (storage.Storage, error)
+type Initialize func(endpoints []string, opt*Config) (Storage, error)
 
 var (
     initializers     = make(map[string]Initialize)
@@ -21,11 +20,11 @@ var (
     }
 )
 
-func NewStorage(name string, endpoints []string, opt*storage.Config) (storage.Storage, error)  {
+func NewStorage(name string, endpoints []string, opt*Config) (Storage, error)  {
     if cb , ok := initializers[name]; ok {
         return cb(endpoints, opt);
     }
-    return nil, fmt.Errorf("%s %s", storage.ErrStorageNotSupport, name)
+    return nil, fmt.Errorf("%s %s", ErrStorageNotSupport, name)
 }
 
 func AddStorage(name string, fn Initialize)  {
