@@ -96,10 +96,7 @@ func (r *redisImpl) watch(key string, watchCh chan *libkv.KVPair) func(tx *rdb.T
     return fn
 }
 func (r *redisImpl) Watch(key string, stopCh <-chan struct{}) (<-chan *libkv.KVPair, error) {
-    watchCh := make(chan *libkv.KVPair, 1)
-    go r.client.Watch(context.Background(), r.watch(key, watchCh), []string{key}...)
-    
-    return watchCh, nil
+    panic("implement me")
 }
 
 func (r *redisImpl) WatchTree(dir string, stopCh <-chan struct{}) (<-chan []*libkv.KVPair, error) {
