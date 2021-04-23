@@ -58,9 +58,15 @@ type KVPair struct {
     LastIndex uint64
 }
 type LockOptions struct {
+    Value     []byte        // Optional, value to associate with the lock
+    TTL       time.Duration // Optional, expiration ttl associated with the lock
+    RenewLock chan struct{} // Optional, chan used to control and stop the session ttl renewal for the lock
 }
 
-type Locker struct{}
+type Locker interface {
+    Lock(stopChan chan struct{}) (<-chan struct{}, error)
+    Unlock() error
+}
 
 var (
     ErrStorageNotSupport = errors.New("storage not supported yet")

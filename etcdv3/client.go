@@ -3,6 +3,7 @@ package etcdv3
 import (
     "context"
     "github.com/DGHeroin/libkv"
+    "github.com/DGHeroin/libkv/common"
     v3 "go.etcd.io/etcd/clientv3"
     "time"
 )
@@ -93,7 +94,7 @@ func (s *etcdv3Impl) Watch(key string, stopCh <-chan struct{}) (<-chan *libkv.KV
         rch := s.client.Watch(context.Background(), key)
         for {
             select {
-            case <- stopCh:
+            case <-stopCh:
                 return
             case <-s.done:
                 return
@@ -139,7 +140,7 @@ func (s *etcdv3Impl) WatchTree(dir string, stopCh <-chan struct{}) (<-chan []*li
 }
 
 func (s *etcdv3Impl) NewLock(key string, options *libkv.LockOptions) (libkv.Locker, error) {
-    panic("implement me")
+    return nil, common.ErrAPINotSupported
 }
 
 func (s *etcdv3Impl) List(dir string) ([]*libkv.KVPair, error) {

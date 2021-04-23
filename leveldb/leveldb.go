@@ -3,6 +3,7 @@ package leveldb
 import (
     "errors"
     "github.com/DGHeroin/libkv"
+    "github.com/DGHeroin/libkv/common"
     ldb "github.com/syndtr/goleveldb/leveldb"
     "github.com/syndtr/goleveldb/leveldb/util"
 )
@@ -58,15 +59,15 @@ func (s *leveldbImpl) Exists(key string) (bool, error) {
 }
 
 func (s *leveldbImpl) Watch(key string, stopCh <-chan struct{}) (<-chan *libkv.KVPair, error) {
-    panic("implement me")
+    return nil, common.ErrAPINotSupported
 }
 
 func (s *leveldbImpl) WatchTree(dir string, stopCh <-chan struct{}) (<-chan []*libkv.KVPair, error) {
-    panic("implement me")
+    return nil, common.ErrAPINotSupported
 }
 
 func (s *leveldbImpl) NewLock(key string, options *libkv.LockOptions) (libkv.Locker, error) {
-    panic("implement me")
+    return libkv.Locker{}, common.ErrAPINotSupported
 }
 
 func (s *leveldbImpl) List(dir string) ([]*libkv.KVPair, error) {
@@ -95,13 +96,13 @@ func (s *leveldbImpl) DeleteTree(dir string) error {
 }
 
 func (s *leveldbImpl) AtomicPut(key string, value []byte, previous *libkv.KVPair, options *libkv.WriteOptions) (bool, *libkv.KVPair, error) {
-    panic("implement me")
+    return false, nil, common.ErrAPINotSupported
 }
 
 func (s *leveldbImpl) AtomicDelete(key string, previous *libkv.KVPair) (bool, error) {
-    panic("implement me")
+    return false, common.ErrAPINotSupported
 }
 
 func (s *leveldbImpl) Close() {
-    s.db.Close()
+    _ = s.db.Close()
 }
