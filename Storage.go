@@ -46,6 +46,7 @@ func DefaultConfig() *Config {
         DB:                0,
     }
 }
+
 type ClientTLSConfig struct {
     CertFile   string
     KeyFile    string

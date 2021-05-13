@@ -67,7 +67,7 @@ func (s *leveldbImpl) WatchTree(dir string, stopCh <-chan struct{}) (<-chan []*l
 }
 
 func (s *leveldbImpl) NewLock(key string, options *libkv.LockOptions) (libkv.Locker, error) {
-    return libkv.Locker{}, common.ErrAPINotSupported
+    return nil, common.ErrAPINotSupported
 }
 
 func (s *leveldbImpl) List(dir string) ([]*libkv.KVPair, error) {

@@ -13,7 +13,7 @@ var (
     supportedStorage = func() string {
         keys := make([]string,0)
         for k := range initializers {
-            keys = append(keys, string(k))
+            keys = append(keys, k)
         }
         sort.Strings(keys)
         return strings.Join(keys, ", ")
