@@ -83,30 +83,41 @@ func (s *etcdv3Impl) Exists(key string) (bool, error) {
 }
 
 func (s *etcdv3Impl) Watch(key string, stopCh <-chan struct{}) (<-chan *libkv.KVPair, error) {
+    return s.WatchMulti(stopCh, key)
+}
+func (s *etcdv3Impl) WatchMulti(stopCh <-chan struct{}, keys ...string) (<-chan *libkv.KVPair, error) {
     watchCh := make(chan *libkv.KVPair)
     go func() {
         defer close(watchCh)
-        pair, err := s.Get(key)
-        if err != nil {
-            return
+        for _, key := range keys {
+            pair, err := s.Get(key)
+            if err != nil {
+                continue
+            }
+            watchCh <- pair
         }
-        watchCh <- pair
-        rch := s.client.Watch(context.Background(), key)
-        for {
-            select {
-            case <-stopCh:
-                return
-            case <-s.done:
-                return
-            case wresp := <-rch:
-                for _, event := range wresp.Events {
-                    watchCh <- &libkv.KVPair{
-                        Key:       string(event.Kv.Key),
-                        Value:     event.Kv.Value,
-                        LastIndex: uint64(event.Kv.Version),
+
+        watchKey := func(key string) {
+            rch := s.client.Watch(context.Background(), key)
+            for {
+                select {
+                case <-stopCh:
+                    return
+                case <-s.done:
+                    return
+                case wresp := <-rch:
+                    for _, event := range wresp.Events {
+                        watchCh <- &libkv.KVPair{
+                            Key:       string(event.Kv.Key),
+                            Value:     event.Kv.Value,
+                            LastIndex: uint64(event.Kv.Version),
+                        }
                     }
                 }
             }
+        }
+        for _, key := range keys {
+            go watchKey(key)
         }
     }()
     return watchCh, nil

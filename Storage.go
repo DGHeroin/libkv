@@ -12,6 +12,7 @@ type Storage interface {
     Delete(key string) error
     Exists(key string) (bool, error)
     Watch(key string, stopCh <-chan struct{}) (<-chan *KVPair, error)
+    WatchMulti(stopCh <-chan struct{}, keys ...string) (<-chan *KVPair, error)
     WatchTree(dir string, stopCh <-chan struct{}) (<-chan []*KVPair, error)
     NewLock(key string, options *LockOptions) (Locker, error)
     List(dir string) ([]*KVPair, error)

@@ -100,15 +100,22 @@ func (r *redisImpl) watch(key string, watchCh chan *libkv.KVPair) func(tx *rdb.T
     return fn
 }
 func (r *redisImpl) Watch(key string, stopCh <-chan struct{}) (<-chan *libkv.KVPair, error) {
+    return r.WatchMulti(stopCh, key)
+}
+
+//
+func (r *redisImpl) WatchMulti(stopCh <-chan struct{}, keys ...string) (<-chan *libkv.KVPair, error) {
     watchCh := make(chan *libkv.KVPair)
     go func() {
         defer close(watchCh)
-        pair, err := r.Get(key)
-        if err != nil {
-            return
+        for _, key := range keys {
+            pair, err := r.Get(key)
+            if err != nil {
+                continue
+            }
+            watchCh <- pair
         }
-        watchCh <- pair
-        rch := r.client.PSubscribe(context.Background(), key)
+        rch := r.client.PSubscribe(context.Background(), keys...)
         for {
             select {
             case <-stopCh:
@@ -126,7 +133,6 @@ func (r *redisImpl) Watch(key string, stopCh <-chan struct{}) (<-chan *libkv.KVP
     }()
     return watchCh, nil
 }
-
 func (r *redisImpl) WatchTree(dir string, stopCh <-chan struct{}) (<-chan []*libkv.KVPair, error) {
     watchCh := make(chan []*libkv.KVPair)
     go func() {

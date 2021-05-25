@@ -62,6 +62,10 @@ func (s *leveldbImpl) Watch(key string, stopCh <-chan struct{}) (<-chan *libkv.K
     return nil, common.ErrAPINotSupported
 }
 
+func (s *leveldbImpl) WatchMulti(stopCh <-chan struct{}, keys ...string) (<-chan *libkv.KVPair, error) {
+    return nil, common.ErrAPINotSupported
+}
+
 func (s *leveldbImpl) WatchTree(dir string, stopCh <-chan struct{}) (<-chan []*libkv.KVPair, error) {
     return nil, common.ErrAPINotSupported
 }
